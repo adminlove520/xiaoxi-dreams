@@ -176,7 +176,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-zinc-500 text-sm">
-        <p>Superdreams v3.0 | 超梦认知系统</p>
+        <p>Superdreams v4.0 | 超梦认知系统</p>
       </footer>
     </div>
   )

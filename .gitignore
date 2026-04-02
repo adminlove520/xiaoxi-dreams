@@ -7,7 +7,9 @@ dist/
 build/
 *.tsbuildinfo
 
-# SQLite database (keep schema, exclude runtime data)
+# SQLite database (keep schema, allow seed DB for deployment)
+!agent/data/superdreams.db
+!center/data/center.db
 *.db
 *.db-shm
 *.db-wal

@@ -40,19 +40,31 @@ function saveDb() {
 async function getDb(): Promise<SqlJsDatabase> {
   if (_db) return _db
 
-  const SQL = await initSqlJs()
-  _dbPath = getDbPath()
+  try {
+    // 尝试定位 WASM 文件 (Vercel 环境特殊处理)
+    const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm')
+    let wasmBinary: Buffer | undefined
+    if (fs.existsSync(wasmPath)) {
+      wasmBinary = fs.readFileSync(wasmPath)
+    }
 
-  if (fs.existsSync(_dbPath)) {
-    const fileBuffer = fs.readFileSync(_dbPath)
-    _db = new SQL.Database(fileBuffer)
-  } else {
-    _db = new SQL.Database()
+    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : undefined)
+    _dbPath = getDbPath()
+
+    if (fs.existsSync(_dbPath)) {
+      const fileBuffer = fs.readFileSync(_dbPath)
+      _db = new SQL.Database(fileBuffer)
+    } else {
+      _db = new SQL.Database()
+    }
+
+    initSchema(_db)
+    saveDb()
+    return _db
+  } catch (error) {
+    console.error('Failed to initialize database:', error)
+    throw error
   }
-
-  initSchema(_db)
-  saveDb()
-  return _db
 }
 
 // 同步版本 — 仅在已初始化后使用
