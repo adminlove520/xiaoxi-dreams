@@ -6,7 +6,9 @@ import { useMemories } from '@/lib/hooks'
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
 
-const typeConfig = {
+type MemoryType = 'lesson' | 'decision' | 'fact' | 'person' | 'project' | 'procedure'
+
+const typeConfig: Record<MemoryType, { icon: React.ElementType; label: string; color: string }> = {
   lesson: { icon: Lightbulb, label: 'lesson', color: '#eab308' },
   decision: { icon: Target, label: 'decision', color: '#22c55e' },
   fact: { icon: BookOpen, label: 'fact', color: '#3b82f6' },
@@ -15,7 +17,7 @@ const typeConfig = {
   procedure: { icon: Wrench, label: 'procedure', color: '#06b6d4' },
 }
 
-function MemoryRow({ memory, index }: { memory: any; index: number }) {
+function MemoryRow({ memory, index }: { memory: { type: MemoryType }; index: number }) {
   const config = typeConfig[memory.type] || typeConfig.fact
 
   return (
