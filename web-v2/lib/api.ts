@@ -40,6 +40,7 @@ export interface Stats {
   memories: number
   dreams: number
   avgHealth: number
+  connections?: number
 }
 
 export interface ApiResponse<T> {
