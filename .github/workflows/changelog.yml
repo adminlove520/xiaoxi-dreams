@@ -59,13 +59,19 @@ jobs:
           if echo "$CHANGES" | grep -q "ARCHITECTURE"; then
             ENTRY+="### Architecture\n- Architecture improvements\n"
           fi
+          if echo "$CHANGES" | grep -q "server.js"; then
+            ENTRY+="### Server\n- API server updates\n"
+          fi
+          if echo "$CHANGES" | grep -q "web/"; then
+            ENTRY+="### Web\n- Web UI updates\n"
+          fi
           
           ENTRY+="\n"
           
           # Prepend to CHANGELOG.md
           {
             head -n 5 CHANGELOG.md
-            echo "$ENTRY"
+            echo -e "$ENTRY"
             tail -n +6 CHANGELOG.md
           } > CHANGELOG.md.tmp
           mv CHANGELOG.md.tmp CHANGELOG.md
@@ -75,5 +81,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
-          git commit -m "docs: auto-update changelog" || true
-          git push
+          git commit -m "docs: auto-update changelog" || echo "Nothing to commit"
+          git push || echo "Push failed, continuing..."
+
+      - name: Report
+        if: always()
+        run: |
+          echo "Changelog updated for version ${{ steps.version.outputs.version }}"
+          echo "Changed files: ${{ steps.changes.outputs.files }}"
