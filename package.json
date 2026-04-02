@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run dev --prefix agent",
     "build": "npm run build --prefix agent",
-    "vercel-build": "npm run build --prefix agent",
+    "vercel-build": "cd agent && npm install && npm run build",
     "start": "npm run start --prefix agent",
     "dev:center": "npm run dev --prefix center",
     "build:center": "npm run build --prefix center",
@@ -20,9 +20,5 @@
     "cognitive"
   ],
   "author": "adminlove520",
-  "license": "MIT",
-  "dependencies": {
-    "next": "^16.2.2",
-    "sql.js": "^1.14.1"
-  }
+  "license": "MIT"
 }
