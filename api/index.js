@@ -1,174 +1,278 @@
-// Vercel Serverless API
-// 注意: Dolt 是本地数据库，Serverless 环境无法直接访问
-// 方案: 使用 GitHub Gist 作为简单 KV 存储
+import express from 'express';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import Database from 'better-sqlite3';
+import { v4 as uuidv4 } from 'uuid';
 
-const GIST_TOKEN = process.env.GITHUB_TOKEN || process.env.GIST_ID;
-const GIST_ID = process.env.GIST_ID;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-export default async function handler(req, res) {
-  const { method, url } = req;
-  
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
-  
-  if (method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  // 解析路径
-  const path = url.split('?')[0];
-  const pathParts = path.split('/').filter(Boolean);
-  
-  // 跳过 /api 前缀
-  const endpoint = pathParts.slice(1).join('/') || '';
-  
-  // API Key 验证
-  const apiKey = req.headers['x-api-key'];
-  if (endpoint !== 'health' && endpoint !== '') {
-    if (apiKey !== process.env.API_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  }
-  
+const app = express();
+const PORT = process.env.PORT || 18792;
+
+// 数据库路径
+const dbPath = join(__dirname, '../db/xiaoxi.db');
+const db = new Database(dbPath);
+
+console.log('📦 数据库:', dbPath);
+
+// 中间件
+app.use(cors());
+app.use(express.json());
+
+// 请求日志
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  next();
+});
+
+// ========== 健康度 API ==========
+
+// GET /api/health - 当前健康度
+app.get('/api/health', (req, res) => {
   try {
-    switch (endpoint) {
-      case 'health':
-        // 获取健康度 (从 Gist)
-        return res.status(200).json(await getHealth());
-        
-      case 'memories':
-        // 获取记忆列表 (从 Gist)
-        return res.status(200).json(await getMemories());
-        
-      case 'stats':
-        // 获取统计
-        return res.status(200).json(await getStats());
-        
-      case 'dreams/history':
-        return res.status(200).json(await getDreamsHistory());
-        
-      case '':
-        // 根路径
-        return res.status(200).json({
-          name: 'xiaoxi-dreams API',
-          version: '2.0.0',
-          mode: 'serverless',
-          endpoints: [
-            'GET /api/health',
-            'GET /api/memories',
-            'GET /api/stats',
-            'GET /api/dreams/history',
-            'POST /api/dreams/trigger'
-          ]
-        });
-        
-      default:
-        return res.status(404).json({ error: 'Not found' });
+    const today = new Date().toISOString().split('T')[0];
+    const health = db.prepare(`
+      SELECT * FROM health_metrics ORDER BY date DESC LIMIT 1
+    `).get();
+    
+    if (!health) {
+      return res.json({ 
+        score: 0, 
+        status: 'unknown',
+        dimensions: {},
+        date: null 
+      });
     }
+    
+    res.json({
+      score: health.score,
+      status: health.score >= 70 ? 'healthy' : health.score >= 50 ? 'warning' : 'critical',
+      dimensions: {
+        freshness: health.freshness,
+        coverage: health.coverage,
+        coherence: health.coherence,
+        efficiency: health.efficiency,
+        accessibility: health.accessibility,
+      },
+      trend: 'up',
+      date: health.date,
+    });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
+    console.error('Health error:', error);
+    res.status(500).json({ error: error.message });
   }
-}
+});
 
-// 获取 Gist 内容
-async function fetchGist() {
-  if (!GIST_ID || !GIST_TOKEN) {
-    return { health: { score: 0, status: 'unknown' }, memories: [], stats: {} };
+// GET /api/health/history - 健康度历史
+app.get('/api/health/history', (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const history = db.prepare(`
+      SELECT * FROM health_metrics ORDER BY date DESC LIMIT ?
+    `).all(days);
+    
+    res.json({ history });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: {
-      'Authorization': `Bearer ${GIST_TOKEN}`,
-      'Accept': 'application/vnd.github+json'
+});
+
+// ========== 记忆 API ==========
+
+// GET /api/memories - 记忆列表
+app.get('/api/memories', (req, res) => {
+  try {
+    const { type, limit = 20, offset = 0 } = req.query;
+    
+    let sql = 'SELECT * FROM memories';
+    let countSql = 'SELECT COUNT(*) as total FROM memories';
+    const params = [];
+    
+    if (type) {
+      sql += ' WHERE type = ?';
+      countSql += ' WHERE type = ?';
+      params.push(type);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch Gist');
+    
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+    
+    const memories = db.prepare(sql).all(...params);
+    const { total } = db.prepare(countSql).get(...(type ? [type] : []));
+    
+    // 解析 tags JSON
+    const result = memories.map(m => ({
+      ...m,
+      tags: JSON.parse(m.tags || '[]'),
+    }));
+    
+    res.json({
+      memories: result,
+      total,
+      page: Math.floor(offset / limit) + 1,
+      pageSize: parseInt(limit),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const gist = await response.json();
-  const content = gist.files['xiaoxi-dreams.json']?.content;
-  
-  return content ? JSON.parse(content) : { health: {}, memories: [], stats: {} };
-}
+});
 
-// 保存 Gist 内容
-async function saveGist(data) {
-  if (!GIST_ID || !GIST_TOKEN) {
-    return;
+// GET /api/memories/:id - 记忆详情
+app.get('/api/memories/:id', (req, res) => {
+  try {
+    const memory = db.prepare('SELECT * FROM memories WHERE id = ?').get(req.params.id);
+    
+    if (!memory) {
+      return res.status(404).json({ error: '记忆不存在' });
+    }
+    
+    res.json({
+      ...memory,
+      tags: JSON.parse(memory.tags || '[]'),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const gist = await fetchGist();
-  const newContent = { ...gist, ...data, updated: new Date().toISOString() };
-  
-  await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${GIST_TOKEN}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.github+json'
-    },
-    body: JSON.stringify({
-      files: {
-        'xiaoxi-dreams.json': {
-          content: JSON.stringify(newContent, null, 2)
-        }
-      }
-    })
-  });
-}
+});
 
-async function getHealth() {
-  const data = await fetchGist();
-  const health = data.health || { score: 0 };
-  
-  let status = 'unknown';
-  if (health.score >= 70) status = 'healthy';
-  else if (health.score >= 50) status = 'warning';
-  else if (health.score > 0) status = 'critical';
-  
-  return {
-    score: health.score,
-    status,
-    date: health.date || null,
-    message: status === 'healthy' ? '健康度正常' :
-             status === 'warning' ? '健康度偏低' :
-             status === 'critical' ? '健康度严重下降' : '暂无数据'
-  };
-}
+// POST /api/memories - 创建记忆
+app.post('/api/memories', (req, res) => {
+  try {
+    const { type, name, summary, content, importance, tags, source_file } = req.body;
+    
+    if (!type || !name) {
+      return res.status(400).json({ error: 'type 和 name 是必填字段' });
+    }
+    
+    const id = `mem_${uuidv4().slice(0, 8)}`;
+    const now = new Date().toISOString();
+    
+    db.prepare(`
+      INSERT INTO memories (id, type, name, summary, content, importance, tags, source_file, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, type, name, summary || '', content || '', importance || 5, JSON.stringify(tags || []), source_file || '', now, now);
+    
+    res.json({ id, message: '记忆创建成功' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-async function getMemories() {
-  const data = await fetchGist();
-  const memories = data.memories || [];
-  
-  return {
-    memories: memories.slice(0, 20),
-    total: memories.length,
-    page: 1
-  };
-}
+// DELETE /api/memories/:id - 删除记忆
+app.delete('/api/memories/:id', (req, res) => {
+  try {
+    const result = db.prepare('DELETE FROM memories WHERE id = ?').run(req.params.id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: '记忆不存在' });
+    }
+    
+    res.json({ message: '记忆已删除' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-async function getStats() {
-  const data = await fetchGist();
-  const memories = data.memories || [];
-  const dreams = data.dreams || [];
-  
-  return {
-    memories: memories.length,
-    dreams: dreams.length,
-    avgHealth: data.health?.score || 0
-  };
-}
+// ========== Dream API ==========
 
-async function getDreamsHistory() {
-  const data = await fetchGist();
-  const dreams = data.dreams || [];
-  
-  return {
-    dreams: dreams.slice(0, 10)
-  };
-}
+// GET /api/dreams - Dream 历史
+app.get('/api/dreams', (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const dreams = db.prepare(`
+      SELECT * FROM dreams ORDER BY date DESC LIMIT ?
+    `).all(limit);
+    
+    res.json({ dreams });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/dreams/trigger - 触发 Dream
+app.post('/api/dreams/trigger', (req, res) => {
+  try {
+    const id = `dream_${uuidv4().slice(0, 8)}`;
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    
+    // 创建 Dream 记录
+    db.prepare(`
+      INSERT INTO dreams (id, date, status, created_at)
+      VALUES (?, ?, 'running', ?)
+    `).run(id, date, now.toISOString());
+    
+    // 模拟 Dream 执行
+    setTimeout(() => {
+      // 计算健康度
+      const memories = db.prepare('SELECT COUNT(*) as count FROM memories').get();
+      const healthScore = Math.min(100, 60 + Math.floor(memories.count * 0.5));
+      
+      // 更新 Dream
+      db.prepare(`
+        UPDATE dreams SET 
+          status = 'completed',
+          health_score = ?,
+          scanned_files = ?,
+          new_entries = ?,
+          updated_entries = ?
+        WHERE id = ?
+      `).run(healthScore, 15, 2, 3, id);
+      
+      // 更新健康度
+      const today = new Date().toISOString().split('T')[0];
+      db.prepare(`
+        INSERT OR REPLACE INTO health_metrics (date, score, freshness, coverage, coherence, efficiency, accessibility)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(today, healthScore, 0.75, 0.80, 0.72, 0.85, 0.78);
+      
+      console.log(`✅ Dream ${id} 完成`);
+    }, 2000);
+    
+    res.json({ 
+      id, 
+      status: 'triggered',
+      message: 'Dream 已触发，请稍后查看结果' 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== 统计 API ==========
+
+// GET /api/stats - 全局统计
+app.get('/api/stats', (req, res) => {
+  try {
+    const memories = db.prepare('SELECT COUNT(*) as count FROM memories').get();
+    const dreams = db.prepare('SELECT COUNT(*) as count FROM dreams').get();
+    const latestHealth = db.prepare('SELECT AVG(score) as avg FROM health_metrics').get();
+    const connections = db.prepare('SELECT COUNT(*) as count FROM memories').get();
+    
+    res.json({
+      memories: memories.count,
+      dreams: dreams.count,
+      avgHealth: Math.round(latestHealth.avg || 0),
+      connections: connections.count,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== 启动 ==========
+
+app.listen(PORT, () => {
+  console.log(`
+╔══════════════════════════════════════════════════════╗
+║   xiaoxi-dreams API Server                       ║
+║   🧠 认知记忆系统 API                            ║
+╠══════════════════════════════════════════════════════╣
+║   Local:   http://localhost:${PORT}                  ║
+║   Health:  http://localhost:${PORT}/api/health      ║
+║   Stats:   http://localhost:${PORT}/api/stats       ║
+╚══════════════════════════════════════════════════════╝
+  `);
+});

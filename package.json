@@ -1,25 +1,26 @@
 {
   "name": "xiaoxi-dreams",
-  "version": "2.0.0",
-  "description": "小溪的认知记忆系统 - 周期性做梦，让 AI 更聪明地醒来",
-  "main": "server.js",
+  "version": "3.0.0",
+  "private": true,
+  "description": "小溪的认知记忆系统 - AI Agent Memory System",
+  "workspaces": [
+    "web",
+    "api"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "web": "start",
-    "api": "node server.js",
-    "bump-version": "./scripts/bump-version.sh"
+    "dev": "npm run dev --workspaces",
+    "dev:web": "npm run dev -w web",
+    "dev:api": "npm run dev -w api",
+    "build": "npm run build --workspaces",
+    "start": "npm run start -w api",
+    "dream": "node scripts/dream.js"
   },
   "keywords": [
-    "openclaw",
-    "agent",
+    "ai",
     "memory",
-    "dreaming",
-    "skills"
+    "agent",
+    "openclaw"
   ],
   "author": "小溪",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {}
+  "license": "MIT"
 }

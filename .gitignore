@@ -1,13 +1,29 @@
 # Dependencies
 node_modules/
+api/node_modules/
+web/node_modules/
 
-# Build output
+# Build outputs
+.next/
 dist/
 build/
 
+# SQLite database
+*.db
+db/*.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 
@@ -15,16 +31,8 @@ build/
 .DS_Store
 Thumbs.db
 
+# Vercel
+.vercel/
+
 # Logs
-*.log
 logs/
-
-# Temporary files
-*.tmp
-*.bak
-*.backup
-
-# Beads / Dolt files (added by bd init)
-.dolt/
-*.db
-.beads-credential-key
