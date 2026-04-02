@@ -1,25 +1,6 @@
-# 🏗️ 架构设计
+# 🏗️ xiaoxi-dreams 架构总览
 
-## 文档导航
-
-> 架构文档已拆分为多个模块，点击链接查看详情：
-
-| 文档 | 说明 |
-|------|------|
-| [ARCHITECTURE-01-OVERVIEW.md](ARCHITECTURE-01-OVERVIEW.md) | 架构总览、整体架构图、模块清单 |
-| [ARCHITECTURE-02-DREAM-FLOW.md](ARCHITECTURE-02-DREAM-FLOW.md) | Dream 执行流程、智能跳过逻辑 |
-| [ARCHITECTURE-03-DATA-FLOW.md](ARCHITECTURE-03-DATA-FLOW.md) | 数据流图、记忆生命周期、Dolt 同步 |
-| [ARCHITECTURE-04-MEMORY-HIERARCHY.md](ARCHITECTURE-04-MEMORY-HIERARCHY.md) | 5 层记忆架构、重要性分级、遗忘曲线 |
-| [ARCHITECTURE-05-MODULES.md](ARCHITECTURE-05-MODULES.md) | 模块清单与进度、优化清单 |
-| [ARCHITECTURE-06-DOLT-ER.md](ARCHITECTURE-06-DOLT-ER.md) | Dolt 数据库 ER 图、表结构、常用查询 |
-| [ARCHITECTURE-07-BEADS.md](ARCHITECTURE-07-BEADS.md) | Beads 集成、跨系统协作、工作流 |
-| [ARCHITECTURE-08-DEPLOYMENT.md](ARCHITECTURE-08-DEPLOYMENT.md) | 部署架构、安装流程、备份策略 |
-
----
-
-## 快速概览
-
-### 架构总览
+## 整体架构图
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -41,6 +22,11 @@
 │  │  │  做梦技能   │  │  任务追踪   │  │   收尾技能  │  │   头脑风暴  │  │  │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
+│                                      │                                      │
+│  ┌───────────────────────────────────┼───────────────────────────────────┐  │
+│  │                           Cron Scheduler                               │  │
+│  │                   每天 04:00 自动触发 Dream                          │  │
+│  └───────────────────────────────────┼───────────────────────────────────┘  │
 └──────────────────────────────────────┼──────────────────────────────────────┘
                                        │
          ┌─────────────────────────────┼─────────────────────────────┐
@@ -49,36 +35,25 @@
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   memory/       │     │   Dolt DB       │     │   Beads         │
 │   文件系统       │     │   (.beads/)     │     │   任务追踪      │
-│   原始日志       │     │   结构化存储     │     │   任务管理      │
+│                 │     │                 │     │                 │
+│  ├─ YYYY-MM-DD  │     │  ├─ dream_sess  │     │  ├─ Issues      │
+│  ├─ procedures  │     │  ├─ memory_ent  │     │  ├─ Deps        │
+│  ├─ episodes/    │     │  ├─ health_met  │     │  ├─ Labels      │
+│  └─ dream-log   │     │  └─ changes     │     │  └─ Comments    │
+│                 │     │                 │     │                 │
+│   原始日志      │     │   结构化存储     │     │   任务管理      │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-### Dream 流程
+## 模块清单
 
-```
-触发 → 收集 → 整合 → 评估 → 报告
-  │      │       │       │       │
-  ▼      ▼       ▼       ▼       ▼
- Cron   扫描   去重    评分    推送
- 日志   日志   路由    健康度  报告
-```
-
-### 5 层记忆架构
-
-```
-Layer 5: Index      → memory/index.json    (索引导航)
-Layer 4: Procedural → memory/procedures.md (程序记忆)
-Layer 3: Long-term  → MEMORY.md            (长期记忆)
-Layer 2: Episodic  → memory/episodes/     (情景记忆)
-Layer 1: Work       → memory/YYYY-MM-DD.md (工作记忆)
-```
-
----
-
-## 相关文档
-
-- [INSTALL.md](INSTALL.md) — 安装指南
-- [WORKFLOW.md](WORKFLOW.md) — Dream 工作流
-- [BEADS_INTEGRATION.md](BEADS_INTEGRATION.md) — Beads 集成指南
-- [DOLT_INTEGRATION.md](DOLT_INTEGRATION.md) — Dolt 集成指南
-- [scoring.md](scoring.md) — 评分算法
+| 模块 | 状态 | 说明 |
+|------|------|------|
+| SKILL Layer | ✅ 完成 | dream, bd, finishing, brainstorm |
+| Cron Scheduler | ✅ 完成 | 每天 04:00 自动触发 |
+| Memory FS | ✅ 完成 | 文件系统记忆存储 |
+| Dolt DB | ✅ 完成 | 结构化数据库 |
+| Beads Integration | ✅ 完成 | 任务追踪 |
+| Git Remote | ⏳ 待做 | 推送到 GitHub |
+| Web UI | ❌ 未做 | 可视化面板 |
+| API Server | ❌ 未做 | 外部接口 |
