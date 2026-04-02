@@ -1,0 +1,13 @@
+{
+  "score": 82,
+  "status": "healthy",
+  "dimensions": {
+    "freshness": 0.75,
+    "coverage": 0.80,
+    "coherence": 0.72,
+    "efficiency": 0.85,
+    "accessibility": 0.78
+  },
+  "trend": "up",
+  "date": "2026-04-02"
+}
