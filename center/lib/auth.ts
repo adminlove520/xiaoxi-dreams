@@ -25,6 +25,11 @@ export function verifyToken(token: string): AuthPayload | null {
 export function verifyApiKey(apiKey: string): Agent | null {
   const db = getDb();
   const agent = db.prepare('SELECT * FROM agents WHERE api_key = ?').get(apiKey) as Agent | undefined;
+  if (agent) {
+    // Proactive heartbeat: update last_heartbeat on any valid API call
+    db.prepare('UPDATE agents SET status = "online", last_heartbeat = CURRENT_TIMESTAMP WHERE id = ?')
+      .run(agent.id);
+  }
   return agent || null;
 }
 

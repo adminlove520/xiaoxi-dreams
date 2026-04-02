@@ -17,17 +17,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const headers = { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' }
+    const headers = { 
+      'Authorization': `ApiKey ${apiKey}`, 
+      'Content-Type': 'application/json' 
+    }
 
     // 同步最近的记忆
     const { memories } = await memoryDb.getAll({ limit: 100 })
     const memoryPayload = memories.map(m => ({
-      memory_uuid: m.id,
+      memoryUuid: m.id,
       digest: m.name,
       type: m.type,
       importance: m.importance,
       tags: m.tags,
-      content_preview: m.summary.substring(0, 200),
+      contentPreview: m.summary.substring(0, 200),
     }))
 
     const memRes = await fetch(`${centerUrl}/api/sync/memory`, {
@@ -39,10 +42,11 @@ export async function POST(request: NextRequest) {
     // 同步最近的做梦记录
     const dreams = await dreamDb.getAll(10)
     const dreamPayload = dreams.filter(d => d.status === 'completed').map(d => ({
-      dream_uuid: d.id,
+      dreamUuid: d.id,
       summary: d.report?.substring(0, 500) || '',
-      health_score: d.health_score,
-      memories_created: d.new_entries,
+      healthScore: d.health_score,
+      memoriesCreated: d.new_entries,
+      status: d.status,
     }))
 
     const dreamRes = await fetch(`${centerUrl}/api/sync/dream`, {
@@ -51,13 +55,12 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ dreams: dreamPayload }),
     })
 
-    // 心跳
-    await fetch(`${centerUrl}/api/agents/${apiKey.split('_')[1] || 'unknown'}/heartbeat`, {
-      method: 'POST',
-      headers,
-    }).catch(() => {})
+    // 注意：心跳逻辑在 Center 的 authMiddleware 中已经自动处理
+    // 只要有任何有效的 ApiKey 请求，Center 就可以更新该 Agent 的 last_heartbeat
+    // 这里的显式心跳调用可以简化或省略，或者在 Agent 有了自己的 ID 后再恢复。
 
     return NextResponse.json({
+      success: true,
       status: 'synced',
       memories: { sent: memoryPayload.length, status: memRes.status },
       dreams: { sent: dreamPayload.length, status: dreamRes.status },

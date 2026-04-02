@@ -12,23 +12,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { summary, status, memoriesCreated } = await request.json();
+    const body = await request.json();
+    const dreams = Array.isArray(body.dreams) ? body.dreams : [body];
     
     const db = getDb();
+    let syncedCount = 0;
     
-    // Insert dream index
-    const result = db.prepare(`
-      INSERT INTO dream_index (agent_id, summary, status, memories_created)
-      VALUES (?, ?, ?, ?)
-    `).run(agent.id, summary || null, status || 'completed', memoriesCreated || 0);
-    
-    // Log sync
-    db.prepare(`
+    const insertStmt = db.prepare(`
+      INSERT INTO dream_index (agent_id, summary, status, memories_created, dream_uuid, health_score)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const logStmt = db.prepare(`
       INSERT INTO sync_log (agent_id, sync_type, status, details)
-      VALUES (?, 'dream', ?, ?)
-    `).run(agent.id, status || 'completed', JSON.stringify({ summary: summary?.slice(0, 100), memoriesCreated }));
+      VALUES (?, 'dream', 'success', ?)
+    `);
+
+    // Use a transaction
+    const transaction = db.transaction((items) => {
+      for (const item of items) {
+        const { summary, status, memoriesCreated, dreamUuid, healthScore } = item;
+        
+        insertStmt.run(agent.id, summary || null, status || 'completed', 
+          memoriesCreated || 0, dreamUuid || null, healthScore || null);
+        
+        syncedCount++;
+      }
+    });
+
+    transaction(dreams);
     
-    return NextResponse.json({ success: true, dreamId: result.lastInsertRowid });
+    if (syncedCount > 0) {
+      logStmt.run(agent.id, JSON.stringify({ count: syncedCount }));
+    }
+    
+    return NextResponse.json({ success: true, synced: syncedCount });
   } catch (error) {
     console.error('POST /api/sync/dream error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

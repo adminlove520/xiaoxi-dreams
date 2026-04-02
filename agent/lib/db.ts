@@ -41,14 +41,22 @@ async function getDb(): Promise<SqlJsDatabase> {
   if (_db) return _db
 
   try {
-    // 尝试定位 WASM 文件 (Vercel 环境特殊处理)
-    const wasmPath = path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm')
+    // 尝试定位 WASM 文件 (兼容各种运行路径)
+    const possiblePaths = [
+      path.resolve(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
+      path.resolve(process.cwd(), 'agent/node_modules/sql.js/dist/sql-wasm.wasm'),
+      path.join(process.cwd(), '../node_modules/sql.js/dist/sql-wasm.wasm')
+    ]
+    
     let wasmBinary: Buffer | undefined
-    if (fs.existsSync(wasmPath)) {
-      wasmBinary = fs.readFileSync(wasmPath)
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        wasmBinary = fs.readFileSync(p)
+        break
+      }
     }
 
-    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : undefined)
+    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : {})
     _dbPath = getDbPath()
 
     if (fs.existsSync(_dbPath)) {
@@ -114,7 +122,7 @@ function initSchema(db: SqlJsDatabase) {
     )
   `)
 
-  // 索引（CREATE INDEX IF NOT EXISTS 安全）
+  // 索引
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type)')
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_importance ON memories(importance DESC)')
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at DESC)')

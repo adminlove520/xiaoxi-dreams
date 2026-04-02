@@ -23,7 +23,6 @@ function initSchema() {
   const database = db;
   
   // Agents table
-  // Updated with jwt_secret column
   database.exec(`
     CREATE TABLE IF NOT EXISTS agents (
       id TEXT PRIMARY KEY,
@@ -37,14 +36,14 @@ function initSchema() {
     )
   `);
 
-  // Migration for existing tables to add jwt_secret if it doesn't exist
+  // Migration for agents
   try {
     const columns = database.prepare("PRAGMA table_info(agents)").all() as any[];
     if (!columns.find(c => c.name === 'jwt_secret')) {
       database.exec("ALTER TABLE agents ADD COLUMN jwt_secret TEXT");
     }
   } catch (e) {
-    console.error("Migration error:", e);
+    console.error("Migration error (agents):", e);
   }
 
   // Memory index table
@@ -71,10 +70,25 @@ function initSchema() {
       summary TEXT,
       status TEXT DEFAULT 'pending',
       memories_created INTEGER DEFAULT 0,
+      dream_uuid TEXT,
+      health_score INTEGER,
       dreamed_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (agent_id) REFERENCES agents(id)
     )
   `);
+
+  // Migration for dream_index
+  try {
+    const columns = database.prepare("PRAGMA table_info(dream_index)").all() as any[];
+    if (!columns.find(c => c.name === 'dream_uuid')) {
+      database.exec("ALTER TABLE dream_index ADD COLUMN dream_uuid TEXT");
+    }
+    if (!columns.find(c => c.name === 'health_score')) {
+      database.exec("ALTER TABLE dream_index ADD COLUMN health_score INTEGER");
+    }
+  } catch (e) {
+    console.error("Migration error (dream_index):", e);
+  }
 
   // Sync log table
   database.exec(`
@@ -127,5 +141,7 @@ export interface DreamIndex {
   summary: string | null;
   status: string;
   memories_created: number;
+  dream_uuid: string | null;
+  health_score: number | null;
   dreamed_at: string;
 }
