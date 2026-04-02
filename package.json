@@ -1,6 +1,6 @@
 {
   "name": "superdreams",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "SuperDreams (超梦) — AI Agent 认知记忆系统，通过做梦实现记忆整合与进化",
   "private": true,
   "scripts": {

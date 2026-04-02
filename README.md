@@ -1,44 +1,49 @@
-# 🌀 SuperDreams 超梦
+# SuperDreams
 
-> AI Agent 认知记忆系统 — 通过"做梦"实现记忆整合、反思与进化
+> AI Agent Cognitive Memory System - Memory consolidation through "dreaming"
 
-[![Version](https://img.shields.io/badge/version-4.1.0-green)](https://github.com/adminlove520/SuperDreams)
+[![Version](https://img.shields.io/badge/version-4.1.1-green)](https://github.com/adminlove520/SuperDreams)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## 什么是 SuperDreams？
+## What is SuperDreams?
 
-SuperDreams 为 AI Agent（我们称之为**龙虾 🦞**）提供真正的记忆系统。每个 Agent 可以周期性地"做梦"——扫描日志、提取知识、整合记忆、评估健康度——从而实现持续的认知进化。
+SuperDreams provides a real memory system for AI Agents (we call them **Lobsters**). Each Agent periodically "dreams" -- scanning logs, extracting knowledge, consolidating memories, and evaluating cognitive health -- achieving continuous cognitive evolution.
 
-### 核心特性
+### Core Features
 
-- **🧠 真实做梦引擎** — 扫描日志 → 提取记忆 → 去重 → 评分 → 生成报告
-- **📊 五维健康度评估** — 新鲜度、覆盖度、连贯度、效率、可达性
-- **🦞 龙虾 Agent Dashboard** — 每只龙虾有自己的记忆可视化面板
-- **🏢 Control Center** — 多 Agent 管理中心，跨 Agent 搜索，赛博永生
-- **🔐 JWT + API Key 鉴权** — Agent 安全注册与通信
-- **💾 SQLite 存储** — Fork 即用，每人一个数据库文件
-- **☁️ Vercel 兼容** — 前端即服务，全球 CDN
+- **Real Dream Engine** -- Scan logs -> Extract memories -> Deduplicate -> Score -> Generate report
+- **5-Dimension Health Assessment** -- Freshness, Coverage, Coherence, Efficiency, Accessibility
+- **Agent Dashboard** -- Each agent has its own memory visualization panel with neon glow UI
+- **Control Center** -- Multi-agent management, cross-agent search
+- **Dual Storage Backend** -- Auto-switches between Upstash Redis (production) and SQLite (development)
+- **Vercel Compatible** -- One-click cloud deployment with persistent storage
 
-## 架构
+## Architecture
 
 ```
 SuperDreams/
-├── agent/          # 🦞 龙虾 Agent (Next.js + SQLite)
-│   ├── app/        #    Dashboard + API Routes
-│   ├── components/ #    UI Components (MemoryMatrix, SyncLog, etc.)
-│   ├── lib/        #    核心引擎 (db, types, dream-engine, health)
-│   └── data/       #    SQLite 数据库
-├── center/         # 🏢 Control Center (Next.js + SQLite)
-│   ├── app/        #    中控 Dashboard + API
-│   └── lib/        #    Auth + DB
-├── scripts/        #    CLI 工具
-│   └── dream.js    #    命令行做梦脚本
-└── memory/         #    日志文件 (做梦扫描源)
++-- agent/              # Agent Dashboard (Next.js 14.2.35 + sql.js/Upstash Redis)
+|   +-- app/            #   Dashboard Pages + API Routes
+|   +-- components/     #   UI (HealthRing, MemoryMatrix, SyncLog, etc.)
+|   +-- lib/            #   Core (store.ts, db.ts, dream-engine.ts, health.ts)
+|   +-- data/           #   SQLite database (local dev)
++-- center/             # Control Center (Next.js + better-sqlite3/Upstash Redis)
+|   +-- app/            #   Dashboard + API
+|   +-- lib/            #   Auth + Store
++-- docs/               # Documentation
+|   +-- architecture.md #   System architecture diagrams
+|   +-- data-flow.md    #   Data flow and logic diagrams
+|   +-- agent-guide.md  #   Agent deployment and usage guide
+|   +-- center-guide.md #   Center deployment and usage guide
++-- SKILLS/             # Agent Skills
+|   +-- superdreams-agent.md  # Skill for AI agents to manage memories via API
++-- scripts/            # CLI tools
++-- memory/             # Log files (dream scan source)
 ```
 
-## 快速开始
+## Quick Start
 
-### 1. 克隆 & 安装
+### 1. Clone and Install
 
 ```bash
 git clone https://github.com/adminlove520/SuperDreams.git
@@ -47,38 +52,91 @@ cd SuperDreams
 # Agent Dashboard
 cd agent && npm install
 
-# Control Center (可选)
+# Control Center (optional)
 cd ../center && npm install
 ```
 
-### 2. 启动 Agent Dashboard
+### 2. Start Agent Dashboard
 
 ```bash
 cd agent
 npm run dev
-# 访问 http://localhost:3000
+# Visit http://localhost:3000
 ```
 
-### 3. 触发第一次做梦
+### 3. Trigger First Dream
 
 ```bash
-# 在根目录运行
+# From root directory
 node scripts/dream.js
 ```
 
-## 路线图
+### 4. Deploy to Vercel (Production)
 
-- [x] v4.0 架构重构 (SQLite + Monorepo)
-- [x] 真实做梦引擎实现
-- [x] 五维健康度量化
-- [x] v4.1 霓虹发光 UI + 记忆矩阵 + 同步日志 + Vercel KV
-- [ ] 记忆向量化搜索 (RAG)
-- [ ] 自动化推文/周报生成
+```bash
+# Agent project
+# Set env vars: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+# Build command auto-runs: cd agent && npm install && npm run build
+```
 
-## 贡献
+See [Agent Deployment Guide](docs/agent-guide.md) and [Center Deployment Guide](docs/center-guide.md) for details.
 
-欢迎提交 PR 或 Issue。让我们一起构建 AI 的赛博记忆。
+## Documentation
 
-## 许可证
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | System architecture, component design, storage layer |
+| [Data Flow](docs/data-flow.md) | Memory upload, dream, sync, health calculation flows |
+| [Agent Guide](docs/agent-guide.md) | Agent deployment, API reference, Skill integration |
+| [Center Guide](docs/center-guide.md) | Center deployment, multi-agent management, sync setup |
+| [API Reference](SKILLS/api.md) | REST API endpoints |
+
+## Storage
+
+SuperDreams uses a **dual-backend storage layer** that auto-detects the environment:
+
+| Environment | Agent Storage | Center Storage |
+|-------------|--------------|----------------|
+| Local Dev | sql.js (WASM SQLite) | better-sqlite3 |
+| Vercel/Production | Upstash Redis | Upstash Redis |
+
+Detection: If `UPSTASH_REDIS_REST_URL` env var exists -> Upstash Redis, otherwise -> SQLite.
+
+Key prefixes: Agent uses `sd:`, Center uses `ctr:` to avoid collision when sharing the same Redis instance.
+
+## AI Agent Integration (Skill)
+
+AI Agents (like openclaw) can manage their memories via the `superdreams-agent` Skill:
+
+```
+# Upload a memory
+POST /api/memories { name, type, summary, content, importance, tags }
+
+# Trigger dreaming
+POST /api/dreams
+
+# Check health
+GET /api/health
+
+# Sync to Center
+POST /api/sync { centerUrl, apiKey }
+```
+
+See [SKILLS/superdreams-agent.md](SKILLS/superdreams-agent.md) for full Skill documentation.
+
+## Roadmap
+
+- [x] v4.0 Architecture refactor (SQLite + Monorepo)
+- [x] Real dream engine
+- [x] 5-dimension health scoring
+- [x] v4.1 Neon glow UI + Memory Matrix + Sync Log + Upstash Redis
+- [ ] Vector search for memories (RAG)
+- [ ] Automated tweet/weekly report generation
+
+## Contributing
+
+PRs and Issues welcome. Let's build cyber memories for AI together.
+
+## License
 
 [MIT](LICENSE)

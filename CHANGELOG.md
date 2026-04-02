@@ -2,6 +2,29 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.1] - 2026-04-02
+
+### Added
+- **Upstash Redis storage** — Agent `store.ts` auto-detects `UPSTASH_REDIS_REST_URL` and switches between Redis (production) and SQLite (development)
+- **Documentation** — Added `docs/architecture.md`, `docs/data-flow.md`, `docs/agent-guide.md`, `docs/center-guide.md`
+- **SuperDreams Agent Skill** — `SKILLS/superdreams-agent.md` for AI agents to manage memories via API
+- **`.env.example`** files for both agent and center with English documentation
+
+### Changed
+- **Replaced `@vercel/kv` with `@upstash/redis`** — Both agent and center migrated (deprecated package)
+- **All API routes** now import from `store.ts` instead of `db.ts` directly
+- **Agent Redis keys** use `sd:` prefix, Center uses `ctr:` prefix
+- **ARCHITECTURE.md** rewritten in English with ASCII diagrams (v4.1 storage layer, UI system)
+- **README.md** updated with documentation links, storage section, dual-backend info
+
+### Fixed
+- Root `package.json` Next.js version pinned to exact `14.2.35` (no ^ prefix)
+- Root build script: `cd agent && npm install && npm run build` (Vercel subdirectory install)
+- `sql.js` initSqlJs type error fixed with `as any` cast
+- 8 Markdown files with Unicode encoding corruption (Windows GBK) rewritten
+- Center `store.ts` TypeScript: `redis.get<Type>()` changed to `(await redis.get(key)) as Type`
+- Removed unused imports (`Database` from page.tsx, `Link` from SyncSettings.tsx)
+
 ## [4.1.0] - 2026-04-02
 
 ### Added
