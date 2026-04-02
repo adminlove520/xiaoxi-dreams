@@ -17,7 +17,7 @@ const typeConfig: Record<MemoryType, { icon: React.ElementType; label: string; c
   procedure: { icon: Wrench, label: 'procedure', color: '#06b6d4' },
 }
 
-function MemoryRow({ memory, index }: { memory: { type: MemoryType }; index: number }) {
+function MemoryRow({ memory, index }: { memory: { type: MemoryType; importance: number; name: string; summary: string; createdAt: string; tags: string[] }; index: number }) {
   const config = typeConfig[memory.type] || typeConfig.fact
 
   return (
