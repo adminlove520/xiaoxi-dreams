@@ -1,0 +1,232 @@
+import { promises as fs } from 'fs'
+import path from 'path'
+import { memoryDb, healthDb, dreamDb, queryDbAll, queryDbOne } from './db'
+import { calculateHealth } from './health'
+import type { Memory, MemoryType, Dream } from './types'
+
+// ────────────── 节标题→类型映射 ──────────────
+const SECTION_MAP: Record<string, MemoryType> = {
+  '教训': 'lesson', 'lessons': 'lesson', 'lesson': 'lesson',
+  '决策': 'decision', 'decisions': 'decision', 'decision': 'decision',
+  '事实': 'fact', 'facts': 'fact', 'fact': 'fact',
+  '流程': 'procedure', 'procedures': 'procedure', 'procedure': 'procedure',
+  '待办': 'procedure', 'todos': 'procedure',
+  '项目': 'project', 'projects': 'project', 'project': 'project',
+  '人物': 'person', 'people': 'person', 'person': 'person',
+}
+
+function parseSection(line: string): MemoryType | null {
+  const lower = line.toLowerCase().replace(/[#*()\s]/g, '')
+  for (const [keyword, type] of Object.entries(SECTION_MAP)) {
+    if (lower.includes(keyword)) return type
+  }
+  return null
+}
+
+function estimateImportance(text: string): number {
+  let score = 5
+  if (text.length > 80) score += 1
+  if (text.length > 150) score += 1
+  if (/不要|避免|注意|重要|关键|bug|error|失败|问题|critical/i.test(text)) score += 2
+  if (/决定|选择|方案|策略|计划|architecture/i.test(text)) score += 1
+  return Math.min(10, Math.max(1, score))
+}
+
+function extractTags(text: string, type: MemoryType): string[] {
+  const tags: string[] = [type]
+  const words = text.match(/[A-Z][a-z]+(?=[A-Z])|[a-zA-Z]{4,}/g)
+  if (words) {
+    const unique = Array.from(new Set(words.map(w => w.toLowerCase()))).slice(0, 3)
+    tags.push(...unique)
+  }
+  return tags
+}
+
+function generateId(): string {
+  return `mem_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 6)}`
+}
+
+// ────────────── 扫描日志文件 ──────────────
+async function scanLogs(memoryDir: string): Promise<{
+  entries: Omit<Memory, 'created_at' | 'updated_at'>[]
+  scannedFiles: number
+}> {
+  const entries: Omit<Memory, 'created_at' | 'updated_at'>[] = []
+  let scannedFiles = 0
+
+  try {
+    const files = await fs.readdir(memoryDir)
+    const logFiles = files.filter(f => f.endsWith('.md') && !f.includes('dream-log'))
+
+    for (const file of logFiles) {
+      scannedFiles++
+      const content = await fs.readFile(path.join(memoryDir, file), 'utf8')
+      const lines = content.split('\n')
+      let currentType: MemoryType | null = null
+
+      for (const line of lines) {
+        if (line.startsWith('#')) {
+          const parsed = parseSection(line)
+          if (parsed) currentType = parsed
+          continue
+        }
+
+        if (line.startsWith('- ') && currentType) {
+          const raw = line.replace(/^- \[.\]\s*/, '').replace(/^- /, '').trim()
+          if (!raw || raw.length < 4) continue
+
+          // 去重：检查数据库中是否已有同名记忆
+          if (await memoryDb.existsByName(raw)) continue
+
+          entries.push({
+            id: generateId(),
+            type: currentType,
+            name: raw,
+            summary: raw,
+            content: raw,
+            importance: estimateImportance(raw),
+            tags: extractTags(raw, currentType),
+            source: file,
+          })
+        }
+      }
+    }
+  } catch (err: any) {
+    if (err.code !== 'ENOENT') throw err
+  }
+
+  return { entries, scannedFiles }
+}
+
+// ────────────── 生成做梦报告 ──────────────
+function generateReport(
+  date: string,
+  scannedFiles: number,
+  newCount: number,
+  totalMemories: number,
+  health: ReturnType<typeof calculateHealth>,
+  byType: Record<string, number>
+): string {
+  const dim = health.dimensions
+  const typeBreakdown = Object.entries(byType)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => `  - ${type}: ${count}`)
+    .join('\n')
+
+  const insights: string[] = []
+  if (dim.freshness >= 0.8) insights.push('记忆新鲜度很高，近期学习活跃')
+  else if (dim.freshness < 0.4) insights.push('近期新增记忆较少，建议多做记录')
+  if (dim.coverage >= 0.7) insights.push('教训和决策覆盖良好')
+  else if (dim.coverage < 0.4) insights.push('教训和决策记录不足，建议反思关键决策')
+  if (dim.coherence >= 0.7) insights.push('记忆质量维持在较高水平')
+  if (dim.accessibility < 0.4) insights.push('可操作知识（事实/流程）偏少，建议补充')
+  if (insights.length === 0) insights.push('系统运行正常，继续保持')
+
+  return [
+    `## 梦境报告 — ${date}`,
+    '',
+    '### 统计',
+    `- 扫描日志: ${scannedFiles} 个文件`,
+    `- 新增记忆: ${newCount} 条`,
+    `- 记忆总量: ${totalMemories} 条`,
+    '',
+    '### 记忆分布',
+    typeBreakdown || '  (暂无)',
+    '',
+    `### 健康度: ${health.score}/100 (${health.status})`,
+    `- 新鲜度: ${(dim.freshness * 100).toFixed(0)}%`,
+    `- 覆盖度: ${(dim.coverage * 100).toFixed(0)}%`,
+    `- 连贯度: ${(dim.coherence * 100).toFixed(0)}%`,
+    `- 效率: ${(dim.efficiency * 100).toFixed(0)}%`,
+    `- 可达性: ${(dim.accessibility * 100).toFixed(0)}%`,
+    `- 趋势: ${health.trend === 'up' ? '↑ 上升' : health.trend === 'down' ? '↓ 下降' : '→ 稳定'}`,
+    '',
+    '### 洞察',
+    ...insights.map((s, i) => `${i + 1}. ${s}`),
+    '',
+    '---',
+    `*Generated by Superdreams Dream Engine at ${new Date().toISOString()}*`,
+  ].join('\n')
+}
+
+// ────────────── 做梦主流程 ──────────────
+export async function executeDream(memoryDir?: string): Promise<Dream> {
+  const today = new Date().toISOString().split('T')[0]
+  const dreamId = `dream_${Date.now().toString(36)}`
+
+  // 1. 创建 dream 记录（status=running）
+  const dream = await dreamDb.create({
+    id: dreamId,
+    date: today,
+    status: 'running',
+    health_score: 0,
+    scanned_files: 0,
+    new_entries: 0,
+    updated_entries: 0,
+    report: '',
+    started_at: new Date().toISOString(),
+  })
+
+  try {
+    // 2. 确定扫描目录
+    const scanDir = memoryDir || path.join(process.cwd(), '..', 'memory')
+
+    // 3. 扫描日志 & 提取新记忆
+    const { entries, scannedFiles } = await scanLogs(scanDir)
+
+    // 4. 批量写入新记忆
+    const newCount = entries.length > 0 ? await memoryDb.createMany(entries) : 0
+
+    // 5. 计算健康度
+    const totalRow = await queryDbOne('SELECT COUNT(*) as c FROM memories')
+    const total = totalRow?.c || 0
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const recentRow = await queryDbOne('SELECT COUNT(*) as c FROM memories WHERE created_at > ?', [sevenDaysAgo])
+    const recent7d = recentRow?.c || 0
+    const typeRows = await queryDbAll('SELECT type, COUNT(*) as c FROM memories GROUP BY type')
+    const byType: Record<string, number> = {}
+    for (const r of typeRows) byType[r.type] = r.c
+    const avgRow = await queryDbOne('SELECT AVG(importance) as avg FROM memories')
+    const avgImp = avgRow?.avg || 5
+
+    const previousHealth = await healthDb.getLatest()
+    const healthResult = calculateHealth(
+      { total, recent7d, byType, avgImportance: avgImp },
+      previousHealth
+    )
+
+    // 6. 保存健康度
+    await healthDb.create(healthResult)
+
+    // 7. 生成报告
+    const report = generateReport(today, scannedFiles, newCount, total, healthResult, byType)
+
+    // 8. 更新 dream 记录
+    await dreamDb.complete(dreamId, {
+      health_score: healthResult.score,
+      scanned_files: scannedFiles,
+      new_entries: newCount,
+      updated_entries: 0,
+      report,
+    })
+
+    return {
+      ...dream,
+      status: 'completed',
+      health_score: healthResult.score,
+      scanned_files: scannedFiles,
+      new_entries: newCount,
+      updated_entries: 0,
+      report,
+      completed_at: new Date().toISOString(),
+    }
+  } catch (error: any) {
+    await dreamDb.fail(dreamId, `Dream failed: ${error.message}`)
+    return {
+      ...dream,
+      status: 'failed',
+      report: `Dream failed: ${error.message}`,
+      completed_at: new Date().toISOString(),
+    }
+  }
+}

@@ -1,16 +1,16 @@
 # Dependencies
 node_modules/
-api/node_modules/
-web/node_modules/
 
 # Build outputs
 .next/
 dist/
 build/
+*.tsbuildinfo
 
-# SQLite database
+# SQLite database (keep schema, exclude runtime data)
 *.db
-db/*.db
+*.db-shm
+*.db-wal
 
 # Logs
 *.log
@@ -34,5 +34,13 @@ Thumbs.db
 # Vercel
 .vercel/
 
-# Logs
-logs/
+# Trash (archived dead code)
+.trash/
+
+# Accio
+.accio/
+
+# Old directories (post-rename)
+web/
+superdream/
+superdream-center/

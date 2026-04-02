@@ -1,10 +1,26 @@
 {
-  "name": "xiaoxi-dreams",
-  "version": "3.0.0",
+  "name": "superdreams",
+  "version": "4.0.0",
+  "description": "SuperDreams (超梦) — AI Agent 认知记忆系统，通过做梦实现记忆整合与进化",
   "private": true,
   "scripts": {
-    "dev": "npm run dev -C web",
-    "build": "npm run build -C web",
-    "start": "npm run start -C web"
+    "dev": "npm run dev --prefix agent",
+    "build": "npm run build --prefix agent",
+    "start": "npm run start --prefix agent",
+    "dev:center": "npm run dev --prefix center",
+    "build:center": "npm run build --prefix center",
+    "dream": "node scripts/dream.js"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "memory",
+    "dreaming",
+    "cognitive"
+  ],
+  "author": "adminlove520",
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^1.14.1"
   }
 }
