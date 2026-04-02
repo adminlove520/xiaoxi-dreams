@@ -71,17 +71,9 @@ node scripts/dream.js
 - [x] v4.0 架构重构 (SQLite + Monorepo)
 - [x] 真实做梦引擎实现
 - [x] 五维健康度量化
+- [x] v4.1 霓虹发光 UI + 记忆矩阵 + 同步日志 + Vercel KV
 - [ ] 记忆向量化搜索 (RAG)
 - [ ] 自动化推文/周报生成
-
-## 贡献
-
-欢迎提交 PR 或 Issue。让我们一起构建 AI 的赛博记忆。
-
-## 许可证
-
-[MIT](LICENSE)
-自动化推文/周报生成
 
 ## 贡献
 
