@@ -4,8 +4,9 @@ import { healthApi, memoriesApi, dreamsApi, statsApi } from './api'
 // Health hooks
 export function useHealth() {
   return useSWR('health', healthApi.get, {
-    refreshInterval: 30000, // 30s
+    refreshInterval: 30000,
     revalidateOnFocus: true,
+    fallbackData: undefined, // Will use mock from API client
   })
 }
 
@@ -16,10 +17,10 @@ export function useHealthHistory(days = 7) {
 // Memories hooks
 export function useMemories(params?: { type?: string; limit?: number; offset?: number }) {
   return useSWR(
-    ['memories', params],
+    ['memories', JSON.stringify(params)],
     () => memoriesApi.list(params),
     {
-      refreshInterval: 60000, // 1min
+      refreshInterval: 60000,
       revalidateOnFocus: true,
     }
   )

@@ -26,7 +26,7 @@ function MemoryRow({ memory, index }: { memory: { type: MemoryType; importance: 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
     >
-      <div className="group flex items-start gap-3 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-4 px-4 transition-colors rounded-lg cursor-pointer">
+      <div className="group flex items-start gap-3 py-3 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/50 -mx-4 px-4 transition-colors rounded-lg cursor-pointer">
         <div 
           className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
           style={{ backgroundColor: `${config.color}20` }}
@@ -40,14 +40,14 @@ function MemoryRow({ memory, index }: { memory: { type: MemoryType; importance: 
               <Badge variant="danger" size="sm">重要</Badge>
             )}
           </div>
-          <div className="font-medium truncate">{memory.name}</div>
-          <div className="text-sm text-text-muted line-clamp-2">
+          <div className="font-medium text-zinc-100 truncate">{memory.name}</div>
+          <div className="text-sm text-zinc-500 line-clamp-2">
             {memory.summary}
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-text-subtle">
+          <div className="flex items-center gap-2 mt-1 text-xs text-zinc-600">
             <span>{memory.createdAt}</span>
             {memory.tags?.slice(0, 2).map((tag: string) => (
-              <span key={tag} className="px-1.5 py-0.5 bg-bg-elevated rounded">
+              <span key={tag} className="px-1.5 py-0.5 bg-zinc-800 rounded">
                 #{tag}
               </span>
             ))}
@@ -63,14 +63,14 @@ export function RecentMemories() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
           <CardTitle>最近记忆</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse h-20 bg-bg-elevated rounded-xl" />
+              <div key={i} className="animate-pulse h-20 bg-zinc-800 rounded-xl" />
             ))}
           </div>
         </CardContent>
@@ -81,13 +81,13 @@ export function RecentMemories() {
   const memories = data?.memories || []
 
   return (
-    <Card>
+    <Card className="bg-zinc-900 border-zinc-800">
       <CardHeader>
         <CardTitle>最近记忆</CardTitle>
       </CardHeader>
       <CardContent>
         {memories.length === 0 ? (
-          <div className="text-center py-8 text-text-muted">
+          <div className="text-center py-8 text-zinc-500">
             暂无记忆
           </div>
         ) : (

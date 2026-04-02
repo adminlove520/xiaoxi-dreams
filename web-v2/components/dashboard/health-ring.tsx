@@ -9,22 +9,22 @@ export function HealthRing() {
 
   if (isLoading) {
     return (
-      <Card variant="elevated" className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-text-muted">加载中...</div>
+      <Card className="flex items-center justify-center h-64 bg-zinc-900 border-zinc-800">
+        <div className="animate-pulse text-zinc-400">加载中...</div>
       </Card>
     )
   }
 
   if (error || !health) {
     return (
-      <Card variant="elevated" className="flex items-center justify-center h-64">
+      <Card className="flex items-center justify-center h-64 bg-zinc-900 border-zinc-800">
         <div className="text-red-500">无法加载健康度</div>
       </Card>
     )
   }
 
   const score = health.score || 0
-  const circumference = 2 * Math.PI * 80 // radius = 80
+  const circumference = 2 * Math.PI * 80
   const strokeDashoffset = circumference - (score / 100) * circumference
 
   const statusConfig = {
@@ -33,10 +33,18 @@ export function HealthRing() {
     critical: { color: '#ef4444', label: '告警', message: '需要处理' },
   }
 
-  const status = statusConfig[health.status] || statusConfig.warning
+  const status = statusConfig[health.status as keyof typeof statusConfig] || statusConfig.warning
+
+  const dimensionLabels: Record<string, string> = {
+    freshness: '新鲜度',
+    coverage: '覆盖度',
+    coherence: '连贯度',
+    efficiency: '效率',
+    accessibility: '可达性',
+  }
 
   return (
-    <Card variant="elevated" className="text-center py-8">
+    <Card className="text-center py-8 bg-zinc-900 border-zinc-800">
       <div className="relative inline-flex items-center justify-center mb-6">
         {/* Background ring */}
         <svg className="w-48 h-48 -rotate-90">
@@ -47,7 +55,7 @@ export function HealthRing() {
             fill="none"
             stroke="currentColor"
             strokeWidth="12"
-            className="text-bg-elevated"
+            className="text-zinc-800"
           />
           {/* Progress ring */}
           <motion.circle
@@ -76,7 +84,7 @@ export function HealthRing() {
           >
             {score}
           </motion.div>
-          <div className="text-text-muted text-sm">/ 100</div>
+          <div className="text-zinc-500 text-sm">/ 100</div>
         </div>
       </div>
 
@@ -98,7 +106,7 @@ export function HealthRing() {
         {status.label}
       </motion.div>
 
-      <p className="text-text-muted mt-3 text-sm">{status.message}</p>
+      <p className="text-zinc-500 mt-3 text-sm">{status.message}</p>
 
       {/* Dimensions */}
       <motion.div
@@ -108,9 +116,9 @@ export function HealthRing() {
         className="grid grid-cols-2 gap-2 mt-6"
       >
         {Object.entries(health.dimensions).map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between text-sm px-3 py-2 bg-bg-elevated rounded-lg">
-            <span className="text-text-muted capitalize">{key === 'freshness' ? '新鲜度' : key === 'coverage' ? '覆盖度' : key === 'coherence' ? '连贯度' : key === 'efficiency' ? '效率' : '可达性'}</span>
-            <span className="font-mono text-primary">{(value * 100).toFixed(0)}%</span>
+          <div key={key} className="flex items-center justify-between text-sm px-3 py-2 bg-zinc-800 rounded-lg">
+            <span className="text-zinc-400">{dimensionLabels[key] || key}</span>
+            <span className="font-mono text-green-500">{(value * 100).toFixed(0)}%</span>
           </div>
         ))}
       </motion.div>

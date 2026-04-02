@@ -15,14 +15,12 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         className={twMerge(
           clsx(
             'rounded-xl p-5 transition-all duration-200',
-            // Variants
-            {
-              'bg-zinc-800 border border-zinc-700/50': variant === 'default',
-              'bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700/50 shadow-xl': variant === 'elevated',
-              'bg-zinc-800/80 backdrop-blur-xl border border-zinc-700/50 rounded-2xl': variant === 'glass',
-            },
+            // Variants - use explicit classes
+            variant === 'default' && 'bg-zinc-900 border border-zinc-800',
+            variant === 'elevated' && 'bg-zinc-900 border border-zinc-800 shadow-xl',
+            variant === 'glass' && 'bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl',
             // Hover effect
-            hover && 'hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/5',
+            hover && 'hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/5 cursor-pointer',
             className
           )
         )}

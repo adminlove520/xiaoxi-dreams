@@ -5,13 +5,6 @@ import { BookOpen, Cloud, Zap, Link2 } from 'lucide-react'
 import { useStats } from '@/lib/hooks'
 import { Card } from '../ui/card'
 
-const stats = [
-  { key: 'memories', label: '记忆总数', icon: BookOpen, color: '#22c55e' },
-  { key: 'dreams', label: 'Dream 次数', icon: Cloud, color: '#3b82f6' },
-  { key: 'avgHealth', label: '平均健康度', icon: Zap, color: '#eab308' },
-  { key: 'connections', label: '关联数', icon: Link2, color: '#f97316' },
-]
-
 function StatCard({ 
   label, 
   value, 
@@ -31,7 +24,7 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
     >
-      <Card hover className="text-center py-6 group">
+      <Card hover className="text-center py-6 bg-zinc-900 border-zinc-800 group">
         <div 
           className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
           style={{ backgroundColor: `${color}20` }}
@@ -41,7 +34,7 @@ function StatCard({
         <div className="text-3xl font-bold font-mono mb-1" style={{ color }}>
           {value}
         </div>
-        <div className="text-sm text-text-muted">{label}</div>
+        <div className="text-sm text-zinc-500">{label}</div>
       </Card>
     </motion.div>
   )
@@ -54,7 +47,7 @@ export function StatsGrid() {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse h-32" />
+          <Card key={i} className="h-32 bg-zinc-900 border-zinc-800 animate-pulse" />
         ))}
       </div>
     )
