@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.1] - 2026-04-03
+
+### Added
+- **OpenClaw CLI** — Introduced the `openclaw` NPM package for managing SuperDreams Agents via command line. Features include remote configuration, manual dream triggering, synchronization, and health stats.
+- **NPM Publish Workflow** — Added automatic NPM publishing to GitHub Actions release workflow.
+
 ## [5.1.0] - 2026-04-03
 
 ### Added

@@ -1,10 +1,11 @@
 {
   "name": "superdreams",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "private": true,
   "workspaces": [
     "agent",
-    "center"
+    "center",
+    "cli"
   ],
   "scripts": {
     "dev:agent": "npm run dev -w agent",

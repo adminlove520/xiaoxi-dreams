@@ -1,0 +1,31 @@
+{
+  "name": "openclaw",
+  "version": "5.1.1",
+  "description": "OpenClaw (龙虾) — SuperDreams AI Agent 认知记忆系统命令行工具",
+  "main": "index.js",
+  "bin": {
+    "openclaw": "bin/openclaw.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openclaw",
+    "superdreams",
+    "ai",
+    "agent",
+    "memory",
+    "cli"
+  ],
+  "author": "adminlove520",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "ora": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "type": "module"
+}

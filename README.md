@@ -2,14 +2,34 @@
 
 > AI Agent Cognitive Memory System - Memory consolidation through "dreaming"
 
-[![Version](https://img.shields.io/badge/version-4.1.1-green)](https://github.com/adminlove520/SuperDreams)
+[![Version](https://img.shields.io/badge/version-5.1.1-green)](https://github.com/adminlove520/SuperDreams)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![NPM](https://img.shields.io/npm/v/openclaw?color=red)](https://www.npmjs.com/package/openclaw)
 
 ## What is SuperDreams?
 
 SuperDreams provides a real memory system for AI Agents (we call them **Lobsters**). Each Agent periodically "dreams" -- scanning logs, extracting knowledge, consolidating memories, and evaluating cognitive health -- achieving continuous cognitive evolution.
 
-### Core Features
+## 🦞 OpenClaw CLI
+
+Control your SuperDreams Agent directly from the command line.
+
+```bash
+# Install
+npm install -g openclaw
+
+# Config
+openclaw config --url http://localhost:3000 --key your-api-key
+
+# Dream & Sync
+openclaw dream
+openclaw sync
+
+# Stats
+openclaw stats
+```
+
+## Core Features
 
 - **Real Dream Engine** -- Scan logs -> Extract memories -> Deduplicate -> Score -> Generate report
 - **5-Dimension Health Assessment** -- Freshness, Coverage, Coherence, Efficiency, Accessibility
@@ -26,10 +46,11 @@ SuperDreams/
 |   +-- app/            #   Dashboard Pages + API Routes
 |   +-- components/     #   UI (HealthRing, MemoryMatrix, SyncLog, etc.)
 |   +-- lib/            #   Core (store.ts, db.ts, dream-engine.ts, health.ts)
-|   +-- data/           #   SQLite database (local dev)
-+-- center/             # Control Center (Next.js + better-sqlite3/Upstash Redis)
++-- center/             # Control Center (Next.js + sql.js/Upstash Redis)
 |   +-- app/            #   Dashboard + API
 |   +-- lib/            #   Auth + Store
++-- cli/                # OpenClaw CLI (Node.js tool)
+|   +-- bin/            #   openclaw binary
 +-- docs/               # Documentation
 |   +-- architecture.md #   System architecture diagrams
 |   +-- data-flow.md    #   Data flow and logic diagrams
@@ -49,35 +70,26 @@ SuperDreams/
 git clone https://github.com/adminlove520/SuperDreams.git
 cd SuperDreams
 
-# Agent Dashboard
-cd agent && npm install
-
-# Control Center (optional)
-cd ../center && npm install
+# Install all workspace dependencies
+npm install
 ```
 
 ### 2. Start Agent Dashboard
 
 ```bash
-cd agent
-npm run dev
+npm run dev:agent
 # Visit http://localhost:3000
 ```
 
-### 3. Trigger First Dream
+### 3. Use OpenClaw CLI
 
 ```bash
-# From root directory
-node scripts/dream.js
+# In another terminal
+cd cli && npm link
+openclaw dream
 ```
 
 ### 4. Deploy to Vercel (Production)
-
-```bash
-# Agent project
-# Set env vars: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
-# Build command auto-runs: cd agent && npm install && npm run build
-```
 
 See [Agent Deployment Guide](docs/agent-guide.md) and [Center Deployment Guide](docs/center-guide.md) for details.
 
@@ -97,39 +109,16 @@ SuperDreams uses a **dual-backend storage layer** that auto-detects the environm
 
 | Environment | Agent Storage | Center Storage |
 |-------------|--------------|----------------|
-| Local Dev | sql.js (WASM SQLite) | better-sqlite3 |
+| Local Dev | sql.js (WASM SQLite) | sql.js (WASM SQLite) |
 | Vercel/Production | Upstash Redis | Upstash Redis |
 
 Detection: If `UPSTASH_REDIS_REST_URL` env var exists -> Upstash Redis, otherwise -> SQLite.
 
-Key prefixes: Agent uses `sd:`, Center uses `ctr:` to avoid collision when sharing the same Redis instance.
-
-## AI Agent Integration (Skill)
-
-AI Agents (like openclaw) can manage their memories via the `superdreams-agent` Skill:
-
-```
-# Upload a memory
-POST /api/memories { name, type, summary, content, importance, tags }
-
-# Trigger dreaming
-POST /api/dreams
-
-# Check health
-GET /api/health
-
-# Sync to Center
-POST /api/sync { centerUrl, apiKey }
-```
-
-See [SKILLS/superdreams-agent.md](SKILLS/superdreams-agent.md) for full Skill documentation.
-
 ## Roadmap
 
 - [x] v4.0 Architecture refactor (SQLite + Monorepo)
-- [x] Real dream engine
-- [x] 5-dimension health scoring
 - [x] v4.1 Neon glow UI + Memory Matrix + Sync Log + Upstash Redis
+- [x] v5.1 Serverless (sql.js) + OpenClaw CLI
 - [ ] Vector search for memories (RAG)
 - [ ] Automated tweet/weekly report generation
 
