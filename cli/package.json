@@ -1,21 +1,21 @@
 {
-  "name": "openclaw",
-  "version": "5.1.3",
-  "description": "OpenClaw (龙虾) — SuperDreams AI Agent 认知记忆系统命令行工具",
+  "name": "sd-dream",
+  "version": "5.1.5",
+  "description": "SuperDreams (超梦) — AI Agent 认知记忆系统命令行工具 (SD-Dream CLI)",
   "main": "index.js",
   "bin": {
-    "openclaw": "bin/openclaw.js"
+    "sd-dream": "bin/sd-dream.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "openclaw",
     "superdreams",
     "ai",
     "agent",
     "memory",
-    "cli"
+    "cli",
+    "sd-dream"
   ],
   "author": "adminlove520",
   "license": "MIT",

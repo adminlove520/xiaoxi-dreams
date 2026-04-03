@@ -1,11 +1,17 @@
-# OpenClaw (龙虾) CLI
+# SD-Dream CLI
 
 SuperDreams AI Agent 认知记忆系统命令行工具。
+
+> **注意**：原 `openclaw` NPM 包已弃用，请卸载后改用 `sd-dream`。
 
 ## 安装
 
 ```bash
-npm install -g openclaw
+# 卸载旧版 (如有)
+npm uninstall -g openclaw
+
+# 安装新版
+npm install -g sd-dream
 ```
 
 ## 快速开始
@@ -13,9 +19,9 @@ npm install -g openclaw
 ### 1. 配置
 设置您的 Agent 地址和 API Key。您可以使用命令配置，也可以直接设置环境变量。
 
-#### 方法 A: 使用命令配置 (持久化到 `~/.openclaw.json`)
+#### 方法 A: 使用命令配置 (持久化到 `~/.sd-dream.json`)
 ```bash
-openclaw config --url https://your-agent.vercel.app --key your-api-key
+sd-dream config --url https://your-agent.vercel.app --key your-api-key
 ```
 
 #### 方法 B: 使用环境变量 (适合 CI/CD 或脚本)
@@ -28,19 +34,19 @@ export CENTER_API_KEY=your-api-key
 ### 2. 执行做梦
 触发 Agent 扫描日志并生成梦境报告：
 ```bash
-openclaw dream
+sd-dream dream
 ```
 
 ### 3. 同步数据
 将 Agent 记忆同步到控制中心：
 ```bash
-openclaw sync
+sd-dream sync
 ```
 
 ### 4. 查看状态
 查看 Agent 健康度及记忆统计：
 ```bash
-openclaw stats
+sd-dream stats
 ```
 
 ## 环境变量说明
@@ -51,7 +57,7 @@ openclaw stats
 | `CENTER_URL` | 控制中心 (Control Center) 的地址 |
 | `CENTER_API_KEY` | 用于同步到控制中心的 API Key |
 
-*优先级：环境变量 > `~/.openclaw.json` > 默认值*
+*优先级：环境变量 > `~/.sd-dream.json` > 默认值*
 
 ## 命令列表
 

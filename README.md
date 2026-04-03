@@ -10,16 +10,16 @@
 
 SuperDreams provides a real memory system for AI Agents (we call them **Lobsters**). Each Agent periodically "dreams" -- scanning logs, extracting knowledge, consolidating memories, and evaluating cognitive health -- achieving continuous cognitive evolution.
 
-## 🦞 OpenClaw CLI
+## 🦞 SD-Dream CLI
 
 Control your SuperDreams Agent directly from the command line.
 
 ```bash
 # Install
-npm install -g openclaw
+npm install -g sd-dream
 
-# Config (Persist to ~/.openclaw.json)
-openclaw config --url https://agent.vercel.app --key your-api-key
+# Config (Persist to ~/.sd-dream.json)
+sd-dream config --url https://agent.vercel.app --key your-api-key
 
 # OR use Environment Variables
 export SUPERDREAMS_URL=https://agent.vercel.app
@@ -27,11 +27,11 @@ export CENTER_API_KEY=your-api-key
 export CENTER_URL=https://xiaoxi-dreams.vercel.app
 
 # Dream & Sync
-openclaw dream
-openclaw sync
+sd-dream dream
+sd-dream sync
 
 # Stats
-openclaw stats
+sd-dream stats
 ```
 
 ## Core Features
@@ -54,8 +54,8 @@ SuperDreams/
 +-- center/             # Control Center (Next.js + sql.js/Upstash Redis)
 |   +-- app/            #   Dashboard + API
 |   +-- lib/            #   Auth + Store
-+-- cli/                # OpenClaw CLI (Node.js tool)
-|   +-- bin/            #   openclaw binary
++-- cli/                # SD-Dream CLI (Node.js tool)
+|   +-- bin/            #   sd-dream binary
 +-- docs/               # Documentation
 |   +-- architecture.md #   System architecture diagrams
 |   +-- data-flow.md    #   Data flow and logic diagrams
@@ -86,12 +86,12 @@ npm run dev:agent
 # Visit http://localhost:3000
 ```
 
-### 3. Use OpenClaw CLI
+### 3. Use SD-Dream CLI
 
 ```bash
 # In another terminal
 cd cli && npm link
-openclaw dream
+sd-dream dream
 ```
 
 ### 4. Deploy to Vercel (Production)
