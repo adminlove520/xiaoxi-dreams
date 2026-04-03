@@ -18,8 +18,13 @@ Control your SuperDreams Agent directly from the command line.
 # Install
 npm install -g openclaw
 
-# Config
-openclaw config --url http://localhost:3000 --key your-api-key
+# Config (Persist to ~/.openclaw.json)
+openclaw config --url https://agent.vercel.app --key your-api-key
+
+# OR use Environment Variables
+export SUPERDREAMS_URL=https://agent.vercel.app
+export CENTER_API_KEY=your-api-key
+export CENTER_URL=https://xiaoxi-dreams.vercel.app
 
 # Dream & Sync
 openclaw dream

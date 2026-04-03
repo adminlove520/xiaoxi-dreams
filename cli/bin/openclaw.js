@@ -10,15 +10,36 @@ import os from 'os';
 const program = new Command();
 const CONFIG_PATH = path.join(os.homedir(), '.openclaw.json');
 
+// --- 环境变量常量 ---
+const ENV_VARS = {
+  url: 'SUPERDREAMS_URL',
+  apiKey: 'CENTER_API_KEY',
+  centerUrl: 'CENTER_URL'
+};
+
 function loadConfig() {
-  if (fs.existsSync(CONFIG_PATH)) {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-  }
-  return {
+  let config = {
     url: 'http://localhost:3000',
     apiKey: '',
     centerUrl: 'https://xiaoxi-dreams.vercel.app'
   };
+
+  // 1. 加载文件配置
+  if (fs.existsSync(CONFIG_PATH)) {
+    try {
+      const fileConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+      config = { ...config, ...fileConfig };
+    } catch (e) {
+      console.error(chalk.red('⚠ 配置文件解析失败，将使用默认值'));
+    }
+  }
+
+  // 2. 环境变量覆盖 (优先级最高)
+  if (process.env[ENV_VARS.url]) config.url = process.env[ENV_VARS.url].replace(/\/$/, '');
+  if (process.env[ENV_VARS.centerUrl]) config.centerUrl = process.env[ENV_VARS.centerUrl].replace(/\/$/, '');
+  if (process.env[ENV_VARS.apiKey]) config.apiKey = process.env[ENV_VARS.apiKey];
+
+  return config;
 }
 
 function saveConfig(config) {
@@ -28,17 +49,29 @@ function saveConfig(config) {
 program
   .name('openclaw')
   .description('OpenClaw CLI - SuperDreams Agent Control Tool')
-  .version('5.1.0');
+  .version('5.1.1');
 
 // Config Command
 program
   .command('config')
   .description('配置 OpenClaw URL 和 API Key')
-  .option('-u, --url <url>', 'Agent Dashboard URL (e.g., http://localhost:3000)')
-  .option('-k, --key <key>', 'API Key for authentication')
-  .option('-c, --center <center>', 'Control Center URL')
+  .option('-u, --url <url>', 'Agent Dashboard URL (or set SUPERDREAMS_URL env)')
+  .option('-k, --key <key>', 'API Key for Center (or set CENTER_API_KEY env)')
+  .option('-c, --center <center>', 'Control Center URL (or set CENTER_URL env)')
+  .option('-l, --list', '查看当前配置')
   .action((options) => {
     const config = loadConfig();
+    
+    if (options.list) {
+      console.log(chalk.bold.green('\n🛠 当前生效配置:'));
+      console.log(chalk.gray('--------------------------------'));
+      console.log(`${chalk.yellow('Agent URL: ')} ${config.url} ${process.env[ENV_VARS.url] ? chalk.gray('(env)') : ''}`);
+      console.log(`${chalk.yellow('Center URL:')} ${config.centerUrl} ${process.env[ENV_VARS.centerUrl] ? chalk.gray('(env)') : ''}`);
+      console.log(`${chalk.yellow('API Key:   ')} ${config.apiKey ? '********' : '(未设置)'} ${process.env[ENV_VARS.apiKey] ? chalk.gray('(env)') : ''}`);
+      console.log(chalk.gray('--------------------------------\n'));
+      return;
+    }
+
     if (options.url) config.url = options.url.replace(/\/$/, '');
     if (options.key) config.apiKey = options.key;
     if (options.center) config.centerUrl = options.center.replace(/\/$/, '');
@@ -84,7 +117,7 @@ program
   .action(async () => {
     const config = loadConfig();
     if (!config.apiKey) {
-      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: openclaw config -k <your_key>'));
+      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: openclaw config -k <your_key> 或设置 CENTER_API_KEY 环境变量'));
       return;
     }
 

@@ -11,9 +11,18 @@ npm install -g openclaw
 ## 快速开始
 
 ### 1. 配置
-设置您的 Agent 地址和 API Key：
+设置您的 Agent 地址和 API Key。您可以使用命令配置，也可以直接设置环境变量。
+
+#### 方法 A: 使用命令配置 (持久化到 `~/.openclaw.json`)
 ```bash
-openclaw config --url http://your-agent-url.com --key your-api-key
+openclaw config --url https://your-agent.vercel.app --key your-api-key
+```
+
+#### 方法 B: 使用环境变量 (适合 CI/CD 或脚本)
+```bash
+export SUPERDREAMS_URL=https://your-agent.vercel.app
+export CENTER_URL=https://xiaoxi-dreams.vercel.app
+export CENTER_API_KEY=your-api-key
 ```
 
 ### 2. 执行做梦
@@ -34,11 +43,21 @@ openclaw sync
 openclaw stats
 ```
 
+## 环境变量说明
+
+| 变量名 | 说明 |
+|--------|------|
+| `SUPERDREAMS_URL` | Agent Dashboard 的访问地址 |
+| `CENTER_URL` | 控制中心 (Control Center) 的地址 |
+| `CENTER_API_KEY` | 用于同步到控制中心的 API Key |
+
+*优先级：环境变量 > `~/.openclaw.json` > 默认值*
+
 ## 命令列表
 
-- `config`: 配置 Agent URL、控制中心 URL 及 API Key。
+- `config`: 配置或查看当前生效配置。支持 `--list` 查看。
 - `dream`: 触发做梦流程。
-- `sync`: 同步本地记忆。
+- `sync`: 同步本地记忆到控制中心。
 - `stats`: 获取健康度评分及统计数据。
 
 ---

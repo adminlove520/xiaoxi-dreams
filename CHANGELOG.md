@@ -2,6 +2,15 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.2] - 2026-04-03
+
+### Added
+- **CLI Environment Variables** — OpenClaw CLI now supports `SUPERDREAMS_URL`, `CENTER_URL`, and `CENTER_API_KEY` environment variables for zero-config CI/CD and automation.
+- **CLI Config List** — Added `openclaw config --list` to inspect current effective configuration (including env overrides).
+
+### Improved
+- **CLI Help** — Enhanced command help text with environment variable documentation.
+
 ## [5.1.1] - 2026-04-03
 
 ### Added
