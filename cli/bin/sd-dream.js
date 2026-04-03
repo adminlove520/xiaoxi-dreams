@@ -17,7 +17,7 @@ const pkg = JSON.parse(
 );
 
 const program = new Command();
-const CONFIG_PATH = path.join(os.homedir(), '.openclaw.json');
+const CONFIG_PATH = path.join(os.homedir(), '.sd-dream.json');
 
 // --- 环境变量常量 ---
 const ENV_VARS = {
@@ -56,14 +56,14 @@ function saveConfig(config) {
 }
 
 program
-  .name('openclaw')
-  .description('OpenClaw CLI - SuperDreams Agent Control Tool')
+  .name('sd-dream')
+  .description('SuperDreams CLI - Agent Control Tool')
   .version(pkg.version);
 
 // Config Command
 program
   .command('config')
-  .description('配置 OpenClaw URL 和 API Key')
+  .description('配置 Agent URL 和 API Key')
   .option('-u, --url <url>', 'Agent Dashboard URL (or set SUPERDREAMS_URL env)')
   .option('-k, --key <key>', 'API Key for Center (or set CENTER_API_KEY env)')
   .option('-c, --center <center>', 'Control Center URL (or set CENTER_URL env)')
@@ -126,7 +126,7 @@ program
   .action(async () => {
     const config = loadConfig();
     if (!config.apiKey) {
-      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: openclaw config -k <your_key> 或设置 CENTER_API_KEY 环境变量'));
+      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: sd-dream config -k <your_key> 或设置 CENTER_API_KEY 环境变量'));
       return;
     }
 
