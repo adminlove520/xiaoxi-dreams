@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
-  experimental: {
-    serverExternalPackages: ['sql.js'],
-  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // 强制排除 sql.js，防止 webpack 打包其 WASM 相关 CJS 代码

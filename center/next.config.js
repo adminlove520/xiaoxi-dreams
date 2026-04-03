@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverExternalPackages: ['sql.js'],
-  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = config.externals || [];

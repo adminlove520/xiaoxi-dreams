@@ -65,7 +65,7 @@ function isKV(): boolean {
 
 // ==================== KV Store Implementation ====================
 let _redis: any = null;
-async function getKV() {
+async function getKV(): Promise<any> {
   if (_redis) return _redis;
   const { Redis } = await import('@upstash/redis');
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -76,7 +76,6 @@ async function getKV() {
 }
 
 const kvStore = {
-  // ... (KV implementation remains the same, assuming it's correctly using the redis client)
   async getDashboard(): Promise<DashboardData> {
     const kv = await getKV();
     const agentIds: string[] = (await kv.get('agents:index')) || [];
@@ -86,7 +85,7 @@ const kvStore = {
     const now = Date.now();
 
     for (const id of agentIds) {
-      const agent = await kv.get<Agent>(`agent:${id}`);
+      const agent = (await kv.get(`agent:${id}`)) as Agent | null;
       if (!agent) continue;
       const memIds: number[] = (await kv.get(`memories:agent:${id}`)) || [];
       const dreamIds: number[] = (await kv.get(`dreams:agent:${id}`)) || [];
@@ -97,7 +96,7 @@ const kvStore = {
       totalDreams += dreamIds.length;
 
       for (const mid of memIds) {
-        const mem = await kv.get<MemoryIndex>(`memory:${mid}`);
+        const mem = (await kv.get(`memory:${mid}`)) as MemoryIndex | null;
         if (mem) {
           typeMap[mem.type] = (typeMap[mem.type] || 0) + 1;
           importanceSum += mem.importance;
@@ -113,7 +112,7 @@ const kvStore = {
     const recentLogIds = allLogIds.slice(-10).reverse();
     const recentActivity: SyncLogEntry[] = [];
     for (const lid of recentLogIds) {
-      const log = await kv.get<SyncLogEntry>(`synclog:${lid}`);
+      const log = (await kv.get(`synclog:${lid}`)) as SyncLogEntry | null;
       if (log) {
         const agent = agents.find(a => a.id === log.agent_id);
         recentActivity.push({ ...log, agent_name: agent?.name || 'Unknown' });
@@ -124,7 +123,7 @@ const kvStore = {
     for (const agent of agents) {
       const dreamIds: number[] = (await kv.get(`dreams:agent:${agent.id}`)) || [];
       for (const did of dreamIds.slice(-50)) {
-        const dream = await kv.get<DreamIndex>(`dream:${did}`);
+        const dream = (await kv.get(`dream:${did}`)) as DreamIndex | null;
         if (dream?.dreamed_at) {
           const date = dream.dreamed_at.slice(0, 10);
           dreamsByDayMap[date] = (dreamsByDayMap[date] || 0) + 1;
@@ -153,7 +152,7 @@ const kvStore = {
     const agentIds: string[] = (await kv.get('agents:index')) || [];
     const agents: AgentSummary[] = [];
     for (const id of agentIds) {
-      const agent = await kv.get<Agent>(`agent:${id}`);
+      const agent = (await kv.get(`agent:${id}`)) as Agent | null;
       if (!agent) continue;
       const memIds: number[] = (await kv.get(`memories:agent:${id}`)) || [];
       const dreamIds: number[] = (await kv.get(`dreams:agent:${id}`)) || [];
@@ -175,18 +174,18 @@ const kvStore = {
 
   async getAgentDetail(id: string): Promise<AgentDetailData | null> {
     const kv = await getKV();
-    const agent = await kv.get<Agent>(`agent:${id}`);
+    const agent = (await kv.get(`agent:${id}`)) as Agent | null;
     if (!agent) return null;
     const memIds: number[] = (await kv.get(`memories:agent:${id}`)) || [];
     const dreamIds: number[] = (await kv.get(`dreams:agent:${id}`)) || [];
     const recentMemories: MemoryIndex[] = [];
     for (const mid of memIds.slice(-10).reverse()) {
-      const mem = await kv.get<MemoryIndex>(`memory:${mid}`);
+      const mem = (await kv.get(`memory:${mid}`)) as MemoryIndex | null;
       if (mem) recentMemories.push(mem);
     }
     const recentDreams: DreamIndex[] = [];
     for (const did of dreamIds.slice(-5).reverse()) {
-      const dream = await kv.get<DreamIndex>(`dream:${did}`);
+      const dream = (await kv.get(`dream:${did}`)) as DreamIndex | null;
       if (dream) recentDreams.push(dream);
     }
     let importanceSum = 0;
@@ -214,7 +213,7 @@ const kvStore = {
 
   async heartbeat(id: string): Promise<boolean> {
     const kv = await getKV();
-    const agent = await kv.get<Agent>(`agent:${id}`);
+    const agent = (await kv.get(`agent:${id}`)) as Agent | null;
     if (!agent) return false;
     agent.status = 'online';
     agent.last_heartbeat = new Date().toISOString();
@@ -226,7 +225,7 @@ const kvStore = {
     const kv = await getKV();
     const agentIds: string[] = (await kv.get('agents:index')) || [];
     for (const id of agentIds) {
-      const agent = await kv.get<Agent>(`agent:${id}`);
+      const agent = (await kv.get(`agent:${id}`)) as Agent | null;
       if (agent && agent.api_key === apiKey) {
         agent.status = 'online';
         agent.last_heartbeat = new Date().toISOString();
@@ -243,7 +242,7 @@ const kvStore = {
     const existingIds: number[] = (await kv.get(`memories:agent:${agentId}`)) || [];
     const existingUuids = new Set<string>();
     for (const mid of existingIds) {
-      const m = await kv.get<MemoryIndex>(`memory:${mid}`);
+      const m = (await kv.get(`memory:${mid}`)) as MemoryIndex | null;
       if (m) existingUuids.add(m.memory_uuid);
     }
     for (const item of memories) {
@@ -299,11 +298,11 @@ const kvStore = {
     const q = query.toLowerCase();
     for (const aid of agentIds) {
       if (agentId && aid !== agentId) continue;
-      const agent = await kv.get<Agent>(`agent:${aid}`);
+      const agent = (await kv.get(`agent:${aid}`)) as Agent | null;
       if (!agent) continue;
       const memIds: number[] = (await kv.get(`memories:agent:${aid}`)) || [];
       for (const mid of memIds) {
-        const mem = await kv.get<MemoryIndex>(`memory:${mid}`);
+        const mem = (await kv.get(`memory:${mid}`)) as MemoryIndex | null;
         if (!mem) continue;
         if (type && mem.type !== type) continue;
         const searchable = `${mem.digest} ${mem.tags || ''} ${mem.content_preview || ''}`.toLowerCase();
@@ -406,7 +405,6 @@ const sqliteStore = {
     const db = await getDb();
     let synced = 0, skipped = 0;
     
-    // sql.js doesn't have a direct transaction helper like better-sqlite3, so we manually wrap
     db.run('BEGIN');
     try {
       for (const item of memories) {
