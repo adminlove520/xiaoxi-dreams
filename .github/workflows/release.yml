@@ -61,7 +61,7 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           # Update root and workspaces
-          npm version $VERSION --no-git-tag-version --workspaces --include-workspace-root
+          npm version $VERSION --no-git-tag-version --workspaces --include-workspace-root --allow-same-version
 
       - name: Commit version update
         run: |

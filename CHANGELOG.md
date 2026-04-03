@@ -2,6 +2,11 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.3] - 2026-04-03
+
+### Fixed
+- **Release Workflow** — Added `--allow-same-version` to `npm version` command in GitHub Actions to prevent build failures when versions are already updated.
+
 ## [5.1.2] - 2026-04-03
 
 ### Added

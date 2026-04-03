@@ -1,6 +1,6 @@
 {
   "name": "openclaw",
-  "version": "5.1.2",
+  "version": "5.1.3",
   "description": "OpenClaw (龙虾) — SuperDreams AI Agent 认知记忆系统命令行工具",
   "main": "index.js",
   "bin": {
